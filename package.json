@@ -1,6 +1,6 @@
 {
   "name": "openair-geojson",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Parse openair description language files to a geojson format.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
