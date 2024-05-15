@@ -1,15 +1,15 @@
 {
   "name": "openair-geojson",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Parse openair description language files to a geojson format.",
-  "main": "./dist/main.js",
-  "types": "./dist/main.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "test": "tsc && node dist/src/test.js",
     "publish": "tsc && npm publish",
     "build": "tsc"
   },
-  "module": "dist/main.js",
+  "module": "dist/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Parbulitos/openair-geojson.git"
