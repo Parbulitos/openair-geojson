@@ -1,0 +1,33 @@
+{
+  "name": "openair-geojson",
+  "version": "0.1.0",
+  "description": "Parse openair description language files to a geojson format.",
+  "main": "./dist/main.js",
+  "types": "./dist/main.d.ts",
+  "scripts": {
+    "test": "tsc && node dist/src/test.js",
+    "publish": "tsc && npm publish",
+    "build": "tsc"
+  },
+  "module": "dist/main.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Parbulitos/openair-geojson.git"
+  },
+  "keywords": [
+    "openair",
+    "json",
+    "geojson",
+    "parser"
+  ],
+  "author": "Carlos Echavarne Ramones",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Parbulitos/openair-geojson/issues"
+  },
+  "homepage": "https://github.com/Parbulitos/openair-geojson#readme",
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "typescript": "^5.4.5"
+  }
+}
