@@ -202,6 +202,7 @@ function parseFile(text: string): Airspace[] {
       if (currentAirspace && DCMatch && currentV) {
         currentV.DC = DCMatch[0];
         parsedPoints.push({ V: currentV });
+        currentV = null;
       }
     } else if (line.startsWith("DP")) {
       const latitudeDMS = line.match(/\d+:\d+:\d+\s+[NS]/g);
