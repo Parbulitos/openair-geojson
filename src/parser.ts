@@ -40,10 +40,19 @@ interface Airspace {
 
 function convertDMSToDecimal(dms: string): number {
   const [coordinate, direction] = dms.split(/\s+/);
-  const [degrees, minutes, seconds] = coordinate
-    .split(":")
-    .map((part) => parseFloat(part));
-  let decimal = degrees + minutes / 60 + seconds / 3600;
+  const parts = coordinate.split(":").map((part) => parseFloat(part));
+  let decimal: number;
+  if (parts.length === 3) {
+    // DD:MM:SS format
+    const [degrees, minutes, seconds] = parts;
+    decimal = degrees + minutes / 60 + seconds / 3600;
+  } else if (parts.length === 2) {
+    // DD:MM.MMMM format (decimal minutes)
+    const [degrees, decimalMinutes] = parts;
+    decimal = degrees + decimalMinutes / 60;
+  } else {
+    decimal = parts[0];
+  }
   if (direction === "S" || direction === "W") {
     decimal *= -1;
   }
@@ -117,9 +126,12 @@ function parseFile(text: string): Airspace[] {
   } | null = null;
 
   for (const line of lines) {
-    if (line.startsWith("*##")) {
+    if (line.startsWith("*#")) {
+      // Comment line - skip
+      continue;
+    } else if (line.startsWith("AC")) {
       //Check if there is an airspace that needs to be saved
-      if (currentAirspace) {
+      if (currentAirspace && parsedPoints.length > 0) {
         //Resaving the first point as the last to close GeoJson
         if (currentSP) currentAirspace.SP = currentSP;
         parsedPoints.push(parsedPoints[0]);
@@ -128,19 +140,19 @@ function parseFile(text: string): Airspace[] {
         airspaces.push(currentAirspace);
         //Reset of local variables
         parsedPoints = [];
+        currentSP = null;
+        currentV = null;
       }
-      const airspaceNameMatch = line.match(/\*##\s*(.*?)\s*###/);
-      const airspaceName = airspaceNameMatch ? airspaceNameMatch[1] : "";
-      currentAirspace = { airspaceName: airspaceName };
+      const airspaceTypeMatch = line.match(/AC (.+)$/);
+      currentAirspace = { airspaceName: "" };
+      if (airspaceTypeMatch) {
+        currentAirspace.AC = airspaceTypeMatch[1].trim();
+      }
     } else if (line.startsWith("AN")) {
       const identifierMatch = line.match(/AN (.+)$/);
       if (identifierMatch && currentAirspace) {
         currentAirspace.AN = identifierMatch[1].trim();
-      }
-    } else if (line.startsWith("AC")) {
-      const airspaceTypeMatch = line.match(/AC (.+)$/);
-      if (airspaceTypeMatch && currentAirspace) {
-        currentAirspace.AC = airspaceTypeMatch[1].trim();
+        currentAirspace.airspaceName = identifierMatch[1].trim();
       }
     } else if (line.startsWith("AH")) {
       const maxAltitudeMatch = line.match(/AH (.+)$/);
@@ -159,7 +171,7 @@ function parseFile(text: string): Airspace[] {
             currentV.D = DMatch[0];
           }
         } else if (letter[0] === "X") {
-          const XMatch = line.match(/\d+:\d+:\d+\s+[NSEW]/g);
+          const XMatch = line.match(/\d+:\d+(?::\d+|\.\d+)\s+[NSEW]/g);
           if (XMatch && currentAirspace) {
             currentV.X = {
               lon: convertDMSToDecimal(XMatch[1]),
@@ -186,7 +198,7 @@ function parseFile(text: string): Airspace[] {
         currentV = null;
       }
     } else if (line.startsWith("DB")) {
-      const DBMatch = line.match(/(\d+:\d+:\d+\s+[NSEW])/g);
+      const DBMatch = line.match(/(\d+:\d+(?::\d+|\.\d+)\s+[NSEW])/g);
       if (currentAirspace && DBMatch && currentV) {
         currentV.DB = {
           latOrg: convertDMSToDecimal(DBMatch[0]),
@@ -205,8 +217,8 @@ function parseFile(text: string): Airspace[] {
         currentV = null;
       }
     } else if (line.startsWith("DP")) {
-      const latitudeDMS = line.match(/\d+:\d+:\d+\s+[NS]/g);
-      const longitudeDMS = line.match(/\d+:\d+:\d+\s+[EW]/g);
+      const latitudeDMS = line.match(/\d+:\d+(?::\d+|\.\d+)\s+[NS]/g);
+      const longitudeDMS = line.match(/\d+:\d+(?::\d+|\.\d+)\s+[EW]/g);
       if (latitudeDMS && longitudeDMS) {
         currentDP = {
           lon: convertDMSToDecimal(longitudeDMS[0]),
